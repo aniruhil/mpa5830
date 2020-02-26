@@ -1,0 +1,103 @@
+---
+title: "MPA 5830 - Module 01 Exercises"
+author: "Ani Ruhil"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: tactile
+    highlight: github
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r klippy, echo = FALSE, include = TRUE}
+klippy::klippy(tooltip_message = 'Click to copy', tooltip_success = 'Done', color = 'cornflowerblue', position = c('top', 'right'))
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, dpi = 300, cache = TRUE, tidy = TRUE, tidy.opts = list(width.cutoff = 40), fig.align = "center", fig.width = 10, fig.height = 8, out.width = "90%", highlight = TRUE) 
+```
+
+
+### Ex. 3: Reading in three data files 
+Create a new `RMarkdown` file that is blank after the `initial setup code chunk` 
+
+Insert a code chunk that reads in both these files found on the web 
+
+- `http://www.stata.com/data/jwooldridge/eacsap/mroz.dta` 
+- `http://calcnet.mth.cmich.edu/org/spss/V16_materials/DataSets_v16/airline_passengers.sav` 
+
+```{r}
+library(haven)
+mroz <- read_dta("http://www.stata.com/data/jwooldridge/eacsap/mroz.dta")
+airline <- read_sav("http://calcnet.mth.cmich.edu/org/spss/V16_materials/DataSets_v16/airline_passengers.sav")
+```
+
+In a follow-up code chunk, run the `summary()` command on each data-set 
+
+```{r}
+summary(mroz)
+summary(airline)
+```
+
+In a separate code chunk, read in [this dataset](https://s3.amazonaws.com/tripdata/201502-citibike-tripdata.zip) after you download it and save the unzipped file in your **data** folder. 
+
+```{r}
+citibike <- read.csv("../data/201502-citibike-tripdata.csv", header = TRUE, sep = ",")
+```
+
+
+- The variable `gender` has the following codes: `Zero = unknown; 1 = male; 2 = female` 
+- Use this coding scheme to convert `gender` into a `factor` with these value labels 
+
+```{r}
+citibike$gender = factor(citibike$gender, levels = c(0,1,2), labels = c("Unknown", "Male", "Female"))
+```
+
+In a follow-up chunk run the following commands on this data-set 
+
+- `names()` 
+- `str()` 
+- `summary()` 
+
+```{r}
+names(citibike)
+str(citibike)
+summary(citibike)
+```
+
+In a final chunk, run the commands necessary to save each of the three data-sets as separate `RData` files. Make sure you save them in your **data** folder. 
+
+```{r}
+save(mroz, file  = "../data/mroz.RData")
+save(airline, file  = "../data/airline.RData")
+save(citibike, file  = "../data/citibike.RData")
+```
+
+Now knit the complete `Rmd` file to **html** 
+
+
+### Ex. 4: Welcome to Kaggle & Mass Shootings 
+Go to [this page on Kaggle](https://www.kaggle.com/zusmani/us-mass-shootings-last-50-years) and read the description of the data-set on mass shootings in the United States that occurred during the 1966-2017 period. once you have read the overview of the data, click the "Data" tab and download the file called `Mass Shootings Dataset.csv`. Be careful; there are several versions so the one you want is the very last one and not any that have a version number attached, such as "Mass Shootings Dataset Ver 2.csv" for example. 
+
+Now read this file into R, perhaps naming it shootings and run the `summary()` command on it. Note the number of observations and the number of variables in the data-set. 
+ 
+```{r}
+shootings <- read.csv("../data/Mass Shootings Dataset.csv", header = TRUE, sep = ",")
+summary(shootings)
+```
+
+
+### Ex. 5: Animal Shelters 
+Go to [this page on Kaggle](https://www.kaggle.com/aaronschlegel/austin-animal-center-shelter-outcomes-and) and download the file called `aac_shelter_outcomes.zip`, unzip it, and AFTER reading the data overview, read in the file and generate a list of variable names with an appropriate command. 
+ 
+
+```{r}
+animal <- read.csv("../data/aac_shelter_outcomes.csv", header = TRUE, sep = ",")
+names(animal)
+```
+
+
+
+
+

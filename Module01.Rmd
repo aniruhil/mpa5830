@@ -1,0 +1,307 @@
+---
+title: "MPA 5830 - Module 01"
+author: "Ani Ruhil"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: tactile
+    highlight: github
+---
+
+```{r klippy, echo = FALSE, include = TRUE}
+klippy::klippy(tooltip_message = 'Click to copy', tooltip_success = 'Done', color = 'cornflowerblue', position = c('top', 'right'))
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, dpi = 300, cache = TRUE, tidy = TRUE, tidy.opts = list(width.cutoff = 40), fig.align = "center", fig.width = 10, fig.height = 8, out.width = "90%", highlight = TRUE) 
+```
+
+## Reading data
+Make sure you have the data-sets sent to you via **Slack** extracted and saved in the **data** folder. If you don't then the commands that follow will not work. When we read in a data-file, the easiest way to do so is by specifying the full path to the file  instead of the short form I use below. For example, instead of `read.csv("../data/ImportDataCSV.csv", sep = ",", header = TRUE)` for fewer headaches you may want to write the full path which, on my computer would be `read.csv("/Users/ruhil/Documents/Teaching/mpa5830/data/ImportDataCSV.csv", sep = ",", header = TRUE)`. 
+
+We start by reading a simple `comma-separated variable` format file and then a `tab-delimited variable` format file. 
+
+```{r csvtab, eval=TRUE}
+df.csv = read.csv("../data/ImportDataCSV.csv", sep = ",", header = TRUE) 
+df.tab = read.csv("../data/ImportDataTAB.txt", sep = "\t", header = TRUE) 
+```
+
+Note ... 
+* The `sep = ","` switch says the individual variables are separated by a comma 
+* `header = TRUE` switch indicates that the first row includes variable names 
+* The tab-delimited file needs `sep = "\t"` 
+
+If both files were read then your RStudio `Environment` should show objects called `df.csv` and `df.tab`. If you don't see these, check the following: 
+
+- Make sure you have the files in your **data** folder 
+- Make sure the folder has been correctly named (no blank spaces before or after, all lowercase, etc)  
+- Make sure the data folder is inside **mpa5830** 
+
+**Excel** files can be read via the `readxl` package
+
+```{r excel, eval=TRUE}
+library(readxl)
+df.xls = read_excel("../data/ImportDataXLS.xls")
+df.xlsx = read_excel("../data/ImportDataXLSX.xlsx")
+
+library(readxl)
+df.xlsx = read_excel("../data/ImportDataXLSX.xlsx")
+```
+
+**SPSS, Stata, SAS** files can be read via the `haven` package
+
+```{r others, eval=TRUE}
+library(haven)
+df.stata = read_stata("../data/ImportDataStata.dta")
+df.sas = read_sas("../data/ImportDataSAS.sas7bdat")
+df.spss = read_sav("../data/ImportDataSPSS.sav")
+
+library(haven)
+statafile <- read_dta("../data/ImportDataStata.dta")
+```
+
+It is also common to encounter **fixed-width** files where the raw data are stored without any gaps between successive variables. However, these files will come with documentation that will tell you where each variable starts and ends, along with other details about each variable. 
+
+```{r dfw, eval=TRUE}
+df.fw = read.fwf("../data/fwfdata.txt", widths = c(4, 9, 2, 4), header = FALSE, col.names = c("Name", "Month", "Day", "Year"))
+```
+
+Notice we need `widths = c(.,.,.,)` to indicate how many slots each variable takes and then `col.names = c(,,,)` to label the columns since the data file does not have variable names. 
+
+### Reading Files from the Web
+It is possible to specify the full web-path for a file and read it in, rather than storing a local copy. This is often useful when the data tend to be updated often or periodically by the source (Census Bureau, Bureau of Labor, Bureau of Economic Analysis, etc.) 
+
+```{r readfiles, eval=TRUE}
+fpe = read.table("http://data.princeton.edu/wws509/datasets/effort.dat")
+test = read.table("https://stats.idre.ucla.edu/stat/data/test.txt", header = TRUE)
+test.csv = read.csv("https://stats.idre.ucla.edu/stat/data/test.csv", header = TRUE)
+
+library(foreign)
+hsb2.spss = read.spss("https://stats.idre.ucla.edu/stat/data/hsb2.sav")
+df.hsb2.spss = as.data.frame(hsb2.spss)
+```
+
+Note that `hsb2.spss` was read with the `foreign`, an alternative package to `haven` 
+- `foreign` calls `read.spss` 
+- `haven` calls `read_spss`
+
+The `foreign` package will also read Stata and other formats and was the one I used a lot before defaulting to `haven` now. There are other packages for reading SAS, SPSS,  etc. data files -- `sas7bdat`, `rio`, `data.table`, `xlsx`, `XLConnect`, `gdata`, etc. For class purposes, `haven` should be the default package you use. 
+
+### Reading compressed files 
+Large files may sit in compressed archives on the web and R has a neat way of allowing you to download the file, unzip it, and read it. Why is this useful? Because if these files tend to be updated periodicially, R's ability lets you use the same piece of R code to download/unzip/read the updated file. The tedious way would be to manually download, unzip, place in the appropriate data folder, and then read it.
+
+```{r gzip, eval=TRUE}
+temp = tempfile()
+download.file("ftp://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NVSS/bridgepop/2016/pcen_v2016_y1016.sas7bdat.zip", temp)
+oursasdata = haven::read_sas(unz(temp, "pcen_v2016_y1016.sas7bdat"))
+unlink(temp)
+``` 
+
+You can save your data in a format that R will recognize, giving it the **RData** or **rdata** extension 
+
+```{r saverd, eval=TRUE}
+save(oursasdata, file = "../data/oursasdata.RData")
+save(oursasdata, file = "../data/oursasdata.rdata")
+```
+
+Check your **data** directory to confirm both files are present 
+
+## Minimal example of data processing
+Working with the **hsb2** data: 200 students from the High school and Beyond study. The variables in this file are:  
+
+- female  = (0/1) 
+- race = (1=hispanic 2=asian 3=african-amer 4=white) 
+- ses  = socioeconomic status (1=low 2=middle 3=high) 
+- schtyp =  type of school (1=public 2=private) 
+- prog   = type of program (1=general 2=academic 3=vocational) 
+- read  =  standardized reading score 
+- write  = standardized writing score 
+- math   = standardized math score 
+- science = standardized science score 
+- socst = standardized social studies score 
+
+```{r dt1}
+hsb2 = read.table('https://stats.idre.ucla.edu/stat/data/hsb2.csv', header = TRUE, sep=",")
+```
+
+What are the variable names (i.e., the column headings) in this file? The `names()` command will tell you that. 
+
+```{r}
+names(hsb2)
+```
+
+Similarly, the `str()` command will show you the details of each variable  
+
+```{r}
+str(hsb2)
+```
+
+and the `summary()` command will give you some summary information about each variable. 
+
+```{r}
+summary(hsb2)
+```
+
+There are no value labels for the various qualitative/categorical variables (female, race, ses, schtyp, and prog) but these are easily created as shown below. 
+
+```{r hsb2clean}
+hsb2$female = factor(hsb2$female, levels = c(0,1), labels = c("Male", "Female"))
+hsb2$female = factor(hsb2$female, levels = c(0, 1), labels=c("Male", "Female"))
+hsb2$race = factor(hsb2$race, levels = c(1:4), labels=c("Hispanic", "Asian", "African American", "White"))
+hsb2$ses = factor(hsb2$ses, levels = c(1:3), labels=c("Low", "Middle", "High"))
+hsb2$schtyp = factor(hsb2$schtyp, levels = c(1:2), labels=c("Public", "Private"))
+hsb2$prog = factor(hsb2$prog, levels = c(1:3), labels=c("General", "Academic", "Vocational"))
+```
+
+```{r summary_of_hsb2}
+summary(hsb2)
+```
+
+I am overwriting each variable, indicating to R that variable `x` will show up as numeric with values 0 and 1, and that a 0 should be treated as male and a 1 as female, and so on. There are are four values for race, 3 for ses, 2 for schtyp, and 3 for prog, so the mapping has to reflect this. Note that this is just a quick run through with creating value labels; we will cover this in greater detail in a later module. 
+
+**save your work!!**
+
+Having added labels to the factors in __hsb2__ we can now save the data for later use. 
+
+```{r hasb2saveanew, eval=TRUE}
+save(hsb2, file="../data/hsb2.RData") 
+```
+
+Let us test if this R Markdown file will Knit to html. If all is good then we can `Close Project`, and when we do so, RStudio will close the project and reopen in a vanilla session.  
+
+### Data in packages 
+Almost all R packages come bundled with data-sets, too many of them to walk you through but
+
+- [see here for standard ones](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/00Index.html) 
+- [here are some more](https://vincentarelbundock.github.io/Rdatasets/datasets.html) 
+- [and some more](http://www.public.iastate.edu/~hofmann/data_in_r_sortable.html) 
+
+To load data from a package, if you know the data-set's name, run 
+
+```{r dataset1}
+library(HistData)
+data("Galton")
+names(Galton)
+```
+
+or you can run 
+
+```{r dataset2}
+data("GaltonFamilies", package = "HistData")
+names(GaltonFamilies)
+```
+
+### Saving data and workspaces 
+You can save your data via 
+
+  - `save(dataname, file = "filepath/filename.RData")` or 
+  - `save(dataname, file = "filepath/filename.rdata")`
+
+```{r mysave1, eval=FALSE}
+data(mtcars)
+save(mtcars, file = "../data/mtcars.RData")
+rm(list = ls()) # To clear the Environment
+load("../data/mtcars.RData")
+```
+
+You can also save multiple data files, individual objects, and even everything you have done in a work session. These are covered in the textbook.  
+
+If you are not in a project and they try to close RStudio after some code has been run, you will be prompted to save (or not) the  `workspace` and you should say "no" by default unless you want to save the workspace. 
+
+
+# RStudio webinars
+The fantastic team at RStudio runs free webinar that are often very helpful so be sure to signup with your email. Here are some video recordings of webinars that are relevant to what we have covered so far. 
+
+- [Programming Part 1 (Writing code in RStudio)](https://www.rstudio.com/resources/webinars/rstudio-essentials-webinar-series-part-1/) 
+- [Programming Part 2 (Debugging code in RStudio)](https://www.rstudio.com/resources/webinars/rstudio-essentials-webinar-series-programming-part-2/) 
+- [Managing Change Part 1 (Projects in RStudio)](https://www.rstudio.com/resources/webinars/rstudio-essentials-webinar-series-managing-change-part-1/) 
+- [Importing Data into R](https://www.rstudio.com/resources/webinars/importing-data-into-r/) 
+- [Whats new with readxl](https://www.rstudio.com/resources/webinars/whats-new-with-readxl/) 
+- [Getting your data into R](https://www.rstudio.com/resources/webinars/getting-your-data-into-r/) 
+- [Getting Started with R Markdown](https://www.rstudio.com/resources/webinars/getting-started-with-r-markdown/)
+
+
+---------------
+
+## Exercises for practice 
+These are some exercises you can use to practice and build your R skills. They are not for grade. s
+
+### Ex. 1: Creating and knitting a new RMarkdown file
+Open a fresh session by launching RStudio and then running `File -> Open Project...`  
+
+Give it a title, your name as the author, and then save it with in **code** with the following name:  `m1ex1.Rmd`  
+
+
+Add this level 1 heading `The Starwars Data` and then insert your first code chunk as shown below but change `eval = FALSE` to `eval = TRUE`. The R code will not be executed if `eval = FALSE`. 
+
+```{r ex1a, eval = FALSE}
+library(dplyr)
+data(starwars)
+str(starwars)
+```
+
+Add this level 2 heading `Character Heights and Weights` and then your second code chunk 
+
+```{r ex1b, eval=FALSE}
+plot(starwars$height, starwars$mass)
+```
+
+Now knit this file to **html** 
+
+
+
+### Ex. 2: Lorem Ipsum paragraphs and graphs 
+Go to [this website](https://loremipsumgenerator.com/generator/?n=2&t=p) and generate five Lorem Ipsum placeholder text paragraphs 
+
+  - para 1: must have level 1 heading 
+  - para 2: must have level 2 heading 
+  - para 3: must have level 3 heading 
+  - para 4: must have level 4 heading 
+  - para 5: must have level 5 heading 
+
+Using the `starwars` data, create five code chunks, one after each paragraph, making sure to set eval = TRUE 
+
+  - Each code chunk will have the same R code (see below)
+
+```{r ex1c, eval=FALSE}
+plot(starwars$height, starwars$mass)
+```
+
+Now knit this file to **html** 
+
+
+### Ex. 3: Reading in three data files 
+Create a new `RMarkdown` file that is blank after the `initial setup code chunk` 
+
+Insert a code chunk that reads in both these files found on the web 
+
+- `http://www.stata.com/data/jwooldridge/eacsap/mroz.dta` 
+- `http://calcnet.mth.cmich.edu/org/spss/V16_materials/DataSets_v16/airline_passengers.sav` 
+In a follow-up code chunk, run the `summary()` command on each data-set 
+
+In a separate code chunk, read in [this dataset](https://s3.amazonaws.com/tripdata/201502-citibike-tripdata.zip) after you download it and save the unzipped file in your **data** folder. 
+
+- The variable `gender` has the following codes: `Zero = unknown; 1 = male; 2 = female` 
+- Use this coding scheme to convert `gender` into a `factor` with these value labels 
+
+In a follow-up chunk run the following commands on this data-set 
+
+- `names()` 
+- `str()` 
+- `summary()` 
+
+In a final chunk, run the commands necessary to save each of the three data-sets as separate `RData` files. Make sure you save them in your **data** folder. 
+
+Now knit the complete `Rmd` file to **html** 
+
+
+### Ex. 4: Welcome to Kaggle & Mass Shootings 
+Go to [this page on Kaggle](https://www.kaggle.com/zusmani/us-mass-shootings-last-50-years) and read the description of the data-set on mass shootings in the United States that occurred during the 1966-2017 period. once you have read the overview of the data, click the "Data" tab and download the file called `Mass Shootings Dataset.csv`. Be careful; there are several versions so the one you want is the very last one and not any that have a version number attached, such as "Mass Shootings Dataset Ver 2.csv" for example. 
+
+Now read this file into R, perhaps naming it shootings and run the `summary()` command on it. Note the number of observations and the number of variables in the data-set. 
+ 
+
+### Ex. 5: Animal Shelters 
+Go to [this page on Kaggle](https://www.kaggle.com/aaronschlegel/austin-animal-center-shelter-outcomes-and) and download the file called `aac_shelter_outcomes.zip`, unzip it, and AFTER reading the data overview, read in the file and generate a list of variable names with an appropriate command. 
+
+
