@@ -22,8 +22,16 @@ Make sure you have the data-sets sent to you via **Slack** extracted and saved i
 We start by reading a simple `comma-separated variable` format file and then a `tab-delimited variable` format file. 
 
 ```{r csvtab, eval=TRUE}
-df.csv = read.csv("../data/ImportDataCSV.csv", sep = ",", header = TRUE) 
-df.tab = read.csv("../data/ImportDataTAB.txt", sep = "\t", header = TRUE) 
+
+df.csv = read.csv(
+  here("data", "ImportDataCSV.csv"),
+  sep = ",",
+  header = TRUE)
+
+df.tab = read.csv(
+  here("data", "ImportDataTAB.txt"),
+  sep = "\t",
+  header = TRUE) 
 ```
 
 Note ... 
