@@ -8,7 +8,7 @@ Let us see how we might use R as a simple calculator:
 
 4
 
-What about loading uop some data and generating some plots?
+What about loading up some data and generating some plots?
 
 ```R
 library(tidyverse)
