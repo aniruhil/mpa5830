@@ -1,0 +1,30 @@
+Type: Compendium
+Package: mpa5830
+Title: What the Package Does (One Line, Title Case)
+Version: 0.0.1
+Authors@R: 
+    person(given = "Ani",
+           family = "Ruhil",
+           role = c("aut", "cre"),
+           email = "ruhil@ohio.edu")
+Description: This is a binder developed for MPA 5830, an
+    introductory course in data analysis and visualization with R we
+    require for one of the MPA specialization tracks in our online MPA
+    program. Students have only had an Excel course in basic stats prior
+    to joing 5830 so the fear factor is tremendous. Using the binder
+    should, I hope, eliminate the chaose and heartburn that coems with
+    managing packages and local installs of R and RStudio. Praise be!!
+License: MIT + file LICENSE
+Depends: 
+    foreign,
+    haven,
+    HistData,
+    klippy,
+    knitr,
+    prettydoc,
+    readxl,
+    rmarkdown
+Remotes: 
+    rlesur/klippy
+Encoding: UTF-8
+LazyData: true
