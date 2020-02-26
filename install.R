@@ -1,4 +1,5 @@
 install.packages("tidyverse")
+install.packages("tidylog")
 install.packages("rmarkdown")
 install.packages("httr")
 install.packages("shinydashboard")
@@ -9,6 +10,16 @@ install.packages('readxl')
 install.packages('GGally')
 install.packages('foreign')
 install.packages('kableExtra')
+install.packages('prettydoc')
+install.packages('HistData')
+install.packages('here')
+install.packages('ggthemes')
+install.packages('wesanderson')
+install.packages('viridis')
+install.packages('patchwork')
+install.packages('scales')
+
+
 
 
 
