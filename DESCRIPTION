@@ -1,6 +1,6 @@
 Type: Compendium
 Package: mpa5830
-Title: What the Package Does (One Line, Title Case)
+Title: A Binder for MPA 5830
 Version: 0.0.1
 Authors@R: 
     person(given = "Ani",
